@@ -1,0 +1,262 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum RoomStatus {
+  available
+  occupied
+  dirty
+  maintenance
+}
+
+enum ReservationStatus {
+  reserved
+  checked_in
+  checked_out
+  cancelled
+}
+
+enum FolioStatus {
+  open
+  closed
+}
+
+enum ChargeType {
+  room
+  extra
+}
+
+enum PaymentMethod {
+  cash
+}
+
+model Property {
+  id         String     @id @default(uuid())
+  name       String
+  code       String     @unique
+  timezone   String?
+  currency   String?    @default("USD")
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  roomTypes  RoomType[]
+  rooms      Room[]
+  users      User[]
+
+  @@map("properties")
+}
+
+model RoomType {
+  id           String    @id @default(uuid())
+  propertyId   String
+  code         String
+  name         String
+  description  String?
+  baseRate     Decimal   @db.Decimal(10, 2)
+  maxOccupancy Int       @default(2)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  property     Property  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  rooms        Room[]
+
+  @@unique([propertyId, code])
+  @@map("room_types")
+}
+
+model Room {
+  id            String             @id @default(uuid())
+  propertyId    String
+  roomTypeId    String
+  roomNumber    String
+  floor         String?
+  status        RoomStatus         @default(available)
+  notes         String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  property      Property           @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  roomType      RoomType           @relation(fields: [roomTypeId], references: [id], onDelete: Restrict)
+  reservationRooms ReservationRoom[]
+
+  @@unique([propertyId, roomNumber])
+  @@index([propertyId, status])
+  @@map("rooms")
+}
+
+model Guest {
+  id            String         @id @default(uuid())
+  firstName     String
+  lastName      String
+  phone         String?
+  email         String?
+  nationality   String?
+  idPassportNo  String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  reservations  Reservation[]
+
+  @@index([lastName, firstName])
+  @@map("guests")
+}
+
+model Reservation {
+  id              String              @id @default(uuid())
+  propertyId      String
+  guestId         String
+  confirmationNo  String              @unique
+  status          ReservationStatus   @default(reserved)
+  checkInDate     DateTime
+  checkOutDate    DateTime
+  adults          Int                 @default(1)
+  children        Int                 @default(0)
+  notes           String?
+  cancelledAt     DateTime?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  property        Property            @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  guest           Guest               @relation(fields: [guestId], references: [id], onDelete: Restrict)
+  reservationRooms ReservationRoom[]
+  checkins        CheckIn[]
+  checkouts       CheckOut[]
+  folios          Folio[]
+
+  @@index([propertyId, checkInDate, checkOutDate])
+  @@index([status])
+  @@map("reservations")
+}
+
+model ReservationRoom {
+  id              String        @id @default(uuid())
+  reservationId   String
+  roomId          String
+  nightlyRate     Decimal       @db.Decimal(10, 2)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  reservation     Reservation   @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  room            Room          @relation(fields: [roomId], references: [id], onDelete: Restrict)
+
+  @@index([roomId])
+  @@unique([reservationId, roomId])
+  @@map("reservation_rooms")
+}
+
+model CheckIn {
+  id              String        @id @default(uuid())
+  reservationId   String
+  checkedInAt     DateTime
+  checkedInByUserId String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  reservation     Reservation   @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+
+  @@index([reservationId])
+  @@map("checkins")
+}
+
+model CheckOut {
+  id               String       @id @default(uuid())
+  reservationId    String
+  checkedOutAt     DateTime
+  checkedOutByUserId String?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  reservation      Reservation  @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+
+  @@index([reservationId])
+  @@map("checkouts")
+}
+
+model Folio {
+  id              String       @id @default(uuid())
+  reservationId   String
+  folioNumber     String       @unique
+  status          FolioStatus  @default(open)
+  openedAt        DateTime     @default(now())
+  closedAt        DateTime?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  reservation     Reservation  @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  charges         FolioCharge[]
+  payments        Payment[]
+
+  @@index([reservationId])
+  @@map("folios")
+}
+
+model FolioCharge {
+  id              String       @id @default(uuid())
+  folioId         String
+  chargeType      ChargeType
+  description     String
+  quantity        Int          @default(1)
+  unitPrice       Decimal      @db.Decimal(10, 2)
+  amount          Decimal      @db.Decimal(10, 2)
+  postedAt        DateTime     @default(now())
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  folio           Folio        @relation(fields: [folioId], references: [id], onDelete: Cascade)
+
+  @@index([folioId])
+  @@map("folio_charges")
+}
+
+model Payment {
+  id              String        @id @default(uuid())
+  folioId         String
+  paymentMethod   PaymentMethod @default(cash)
+  amount          Decimal       @db.Decimal(10, 2)
+  paidAt          DateTime      @default(now())
+  referenceNo     String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  folio           Folio         @relation(fields: [folioId], references: [id], onDelete: Cascade)
+
+  @@index([folioId])
+  @@map("payments")
+}
+
+model Role {
+  id            String    @id @default(uuid())
+  code          String    @unique
+  name          String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  users         User[]
+
+  @@map("roles")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  propertyId    String
+  roleId        String
+  username      String    @unique
+  passwordHash  String
+  fullName      String
+  isActive      Boolean   @default(true)
+  lastLoginAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  property      Property  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  role          Role      @relation(fields: [roleId], references: [id], onDelete: Restrict)
+
+  @@index([propertyId])
+  @@index([roleId])
+  @@map("users")
+}
