@@ -1,76 +1,74 @@
-# Hotel Management System (PMS) - Phase 1 Foundation
+# Hotel Management System (Electron + Backend + Frontend)
 
-This repository now contains the **Phase 1 core foundation** for a desktop PMS using:
-- Electron shell
-- React frontend
-- Node.js backend/service layer
-- SQLite database
-- Prisma ORM schema
+This project now has a runnable local setup with 3 app modules:
 
-## Step 1: System Architecture
+- `app/electron` → Electron desktop shell
+- `app/backend` → Express API server
+- `app/frontend` → Vite frontend UI
 
-Layered architecture:
-1. UI Layer (`app/frontend`) - React screens/components only
-2. Application Layer (`app/backend/services`) - business logic and workflows
-3. Data Layer (`app/backend/repositories`) - repository interfaces/implementations
-4. Database Layer (`prisma` + `app/database`) - SQLite + schema management
-5. API Layer (future-ready structure in `app/backend/api`) - DTO/contracts only in Phase 1
-
-Detailed design and module map:
-- `docs/phase1-foundation.md`
-
-## Step 2: Database Schema
-
-The Prisma schema is implemented at:
-- `prisma/schema.prisma`
-
-It includes core Phase 1 entities:
-- properties
-- room_types
-- rooms
-- guests
-- reservations
-- reservation_rooms
-- checkins
-- checkouts
-- folios
-- folio_charges
-- payments
-- users
-- roles
-
-All primary entities use UUID + `createdAt` + `updatedAt`.
-
-## Step 3: Folder Structure
+## Project Structure
 
 ```text
 app/
   electron/
-  frontend/
+    main.js
+    package.json
   backend/
-    api/
-    models/
-    modules/
-      auth/
-      billing/
-      dashboard/
-      guest/
-      property/
-      reservation/
-      room/
-    repositories/
-    services/
-    utils/
-  database/
-  shared/
-docs/
+    src/server.js
+    package.json
+  frontend/
+    index.html
+    main.js
+    package.json
 prisma/
+docs/
 ```
 
-## Next Steps (Phase 1 Remaining)
-- Step 4: backend base setup (services + repository contracts + Prisma client wiring)
-- Step 5: frontend base setup (routing/layout/pages)
-- Step 6: reservation module (fully working workflow)
-- Step 7: room + guest modules
-- Step 8: basic billing
-- Step 9: integration + testing
+## Requirements
+
+- Node.js 18+
+- npm 9+
+
+## Install
+
+From the repository root:
+
+```bash
+npm install
+```
+
+This installs dependencies for all workspaces (`app/electron`, `app/backend`, `app/frontend`).
+
+## Run in Development (Electron + Backend + Frontend)
+
+```bash
+npm run dev
+```
+
+What happens:
+
+- Backend runs on `http://localhost:3001`
+- Frontend dev server runs on `http://localhost:5173`
+- Electron waits for both services, then opens the desktop app
+
+## Run in Start Mode
+
+```bash
+npm run build
+npm run start
+```
+
+What happens:
+
+- Frontend is built to `app/frontend/dist`
+- Backend runs on `http://localhost:3001`
+- Frontend preview runs on `http://localhost:4173`
+- Electron waits for both services and opens the app
+
+## Health Check Endpoint
+
+Backend exposes:
+
+- `GET /api/health`
+
+The frontend automatically checks this endpoint and shows connection status.

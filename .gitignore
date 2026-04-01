@@ -1,0 +1,5 @@
+node_modules/
+app/**/node_modules/
+app/frontend/dist/
+.DS_Store
+*.log

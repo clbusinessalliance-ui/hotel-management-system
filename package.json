@@ -1,0 +1,24 @@
+{
+  "name": "hotel-management-system",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "app/electron",
+    "app/backend",
+    "app/frontend"
+  ],
+  "scripts": {
+    "dev": "concurrently -k \"npm:dev:backend\" \"npm:dev:frontend\" \"npm:dev:electron\"",
+    "dev:backend": "npm run dev -w app/backend",
+    "dev:frontend": "npm run dev -w app/frontend",
+    "dev:electron": "npm run dev -w app/electron",
+    "start": "concurrently -k \"npm:start:backend\" \"npm:start:frontend\" \"npm:start:electron\"",
+    "start:backend": "npm run start -w app/backend",
+    "start:frontend": "npm run start -w app/frontend",
+    "start:electron": "npm run start -w app/electron",
+    "build": "npm run build -w app/frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.0"
+  }
+}
