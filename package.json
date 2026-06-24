@@ -1,0 +1,43 @@
+{
+  "name": "hotel-management-system",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Hotel & Guesthouse Management System (PMS) — desktop-first, cloud-ready, lock-brand agnostic.",
+  "author": "",
+  "license": "UNLICENSED",
+  "main": "dist/main/main.cjs",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.main.json",
+    "build": "vite build",
+    "build:main": "esbuild src/main/main.ts src/main/preload.ts --bundle --platform=node --format=cjs --outdir=dist/main --out-extension:.js=.cjs --external:electron --external:better-sqlite3 --tsconfig=tsconfig.json",
+    "build:all": "npm run typecheck && npm run build && npm run build:main",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:smoke": "esbuild src/data/sqlite/smoke.ts --bundle --platform=node --format=cjs --external:better-sqlite3 --tsconfig=tsconfig.json --outfile=dist/smoke.cjs && node dist/smoke.cjs",
+    "rebuild": "electron-rebuild -f -w better-sqlite3",
+    "rebuild:node": "npm rebuild better-sqlite3",
+    "electron": "electron .",
+    "prestart": "npm run rebuild",
+    "start": "npm run build && npm run build:main && electron ."
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.10.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@electron/rebuild": "^4.0.4",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^25.9.3",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "electron": "^33.2.1",
+    "esbuild": "^0.28.1",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11",
+    "vitest": "^2.1.8"
+  }
+}

@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+out/
+release/
+*.tsbuildinfo
+
+# Local data / runtime
+*.sqlite
+*.sqlite3
+*.db
+data/local/
+
+# Env & secrets
+.env
+.env.*
+!.env.example
+
+# Encryption keys — never commit
+*.key
+field-master.key
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*

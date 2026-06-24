@@ -1,0 +1,11 @@
+{
+  // Type-checks the Electron main process (and the layers it composes).
+  // Emit is handled by esbuild (see `build:main`), so this stays noEmit.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "lib": ["ES2022"],
+    "noEmit": true
+  },
+  "include": ["src/main", "src/data", "src/core", "src/access", "src/shared"]
+}
