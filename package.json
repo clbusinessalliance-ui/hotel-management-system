@@ -7,12 +7,16 @@
   "license": "UNLICENSED",
   "main": "dist/main/main.cjs",
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "vite",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.main.json",
     "build": "vite build",
     "build:main": "esbuild src/main/main.ts src/main/preload.ts --bundle --platform=node --format=cjs --outdir=dist/main --out-extension:.js=.cjs --external:electron --external:better-sqlite3 --tsconfig=tsconfig.json",
     "build:all": "npm run typecheck && npm run build && npm run build:main",
+    "verify": "npm run typecheck && npm test && npm run build",
     "test": "vitest run",
     "test:watch": "vitest",
     "db:smoke": "esbuild src/data/sqlite/smoke.ts --bundle --platform=node --format=cjs --external:better-sqlite3 --tsconfig=tsconfig.json --outfile=dist/smoke.cjs && node dist/smoke.cjs",
