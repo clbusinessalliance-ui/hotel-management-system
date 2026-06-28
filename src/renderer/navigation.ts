@@ -14,6 +14,7 @@ export interface NavItem {
 
 export const NAV_ITEMS: NavItem[] = [
   { key: "dashboard", label: "Dashboard", icon: "🏠", description: "At-a-glance occupancy, arrivals, departures and tasks." },
+  { key: "frontdesk", label: "Front Desk", icon: "🛎️", description: "Today's arrivals, in-house guests, departures and room availability.", requiredPermission: "reservation:read" },
   { key: "reservations", label: "Reservations", icon: "📅", description: "Create and manage bookings, check-ins and check-outs.", requiredPermission: "reservation:read" },
   { key: "rooms", label: "Rooms", icon: "🛏️", description: "Rooms, room types and live room status.", requiredPermission: "room:read" },
   { key: "guests", label: "Guests", icon: "🧑", description: "Guest profiles and history.", requiredPermission: "guest:read" },

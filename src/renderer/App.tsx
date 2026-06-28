@@ -6,6 +6,7 @@ import { getBridge } from "./pmsClient.ts";
 import { AuthProvider } from "./authContext.tsx";
 import LoginScreen from "./LoginScreen.tsx";
 import DashboardPanel from "./DashboardPanel.tsx";
+import FrontDeskPanel from "./FrontDeskPanel.tsx";
 import ReservationsPanel from "./ReservationsPanel.tsx";
 import RoomsPanel from "./RoomsPanel.tsx";
 import GuestsPanel from "./GuestsPanel.tsx";
@@ -101,6 +102,8 @@ export default function App() {
 
         {effectiveActive === "dashboard" ? (
           <DashboardPanel />
+        ) : effectiveActive === "frontdesk" ? (
+          <FrontDeskPanel />
         ) : effectiveActive === "reservations" ? (
           <ReservationsPanel />
         ) : effectiveActive === "rooms" ? (
