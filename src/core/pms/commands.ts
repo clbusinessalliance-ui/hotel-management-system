@@ -157,6 +157,16 @@ export async function advanceHousekeepingTask(
 
   const updated: HousekeepingTask = { ...transition.value, updatedAt: new Date().toISOString() };
   await pms.data.housekeeping.save(updated);
+
+  // Release the room back into service once its clean passes inspection —
+  // reusing changeRoomStatus so the room state machine stays authoritative.
+  // Best-effort: an impossible transition or a missing room is a harmless
+  // no-op, never an error that would undo the task change. The task flow only
+  // reaches "inspected" from "done", so this fires exactly once per clean.
+  if (to === "inspected") {
+    await changeRoomStatus(pms, updated.roomId, "available");
+  }
+
   return { ok: true, value: updated };
 }
 
