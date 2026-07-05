@@ -12,6 +12,7 @@ import { getBridge } from "./pmsClient.ts";
 import { useAuth } from "./authContext.tsx";
 import { buildBillingRows, type BillingRow } from "./billingRows.ts";
 import { buildFolio, type Folio } from "./folioRows.ts";
+import { buildInvoiceItemLines } from "./folioItemRows.ts";
 
 const METHODS: PaymentMethod[] = ["cash", "card", "transfer", "other"];
 
@@ -128,30 +129,53 @@ function FolioView({ folio, onClose }: { folio: Folio; onClose: () => void }) {
       {folio.invoices.length === 0 ? (
         <p className="muted">No invoices.</p>
       ) : (
-        <section className="table-card">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Invoice</th>
-                <th>Status</th>
-                <th className="num">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {folio.invoices.map((inv) => (
-                <tr key={inv.id}>
-                  <td>
-                    <code>{inv.id}</code>
-                  </td>
-                  <td>
-                    <span className={`badge badge-${inv.status}`}>{inv.status}</span>
-                  </td>
-                  <td className="num">{inv.totalFormatted}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </section>
+        folio.invoices.map((inv) => {
+          // No invoice-item read exists yet (invoice_items is unwired), so the
+          // stored-items list is empty and the projection falls back to a single
+          // room-charge line carrying the invoice's authoritative total.
+          const itemLines = buildInvoiceItemLines(
+            { id: inv.id, status: inv.status, totalMinor: inv.totalMinor, currency: folio.currency },
+            [],
+            { nights: folio.nights }
+          );
+          return (
+            <div key={inv.id}>
+              <p className="muted">
+                Invoice <code>{inv.id}</code>{" "}
+                <span className={`badge badge-${inv.status}`}>{inv.status}</span>
+              </p>
+              <section className="table-card">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Description</th>
+                      <th className="num">Qty</th>
+                      <th className="num">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {itemLines.map((line) => (
+                      <tr key={line.id}>
+                        <td>{line.description}</td>
+                        <td className="num">{line.quantity}</td>
+                        <td className="num">{line.amountFormatted}</td>
+                      </tr>
+                    ))}
+                    <tr>
+                      <td>
+                        <strong>Invoice Total</strong>
+                      </td>
+                      <td className="num" />
+                      <td className="num">
+                        <strong>{inv.totalFormatted}</strong>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+            </div>
+          );
+        })
       )}
 
       <h2 className="section-title">Payment history</h2>
