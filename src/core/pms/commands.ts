@@ -66,6 +66,20 @@ export async function changeReservationStatus(
   const updated: Reservation = { ...transition.value, updatedAt: new Date().toISOString() };
   await pms.data.reservations.save(updated);
 
+  // Keep the room's status in step with the stay lifecycle, reusing the existing
+  // changeRoomStatus command so the room state machine stays authoritative. This
+  // is best-effort: an impossible transition (e.g. the room is already occupied)
+  // is a harmless no-op, never an error that would undo the reservation change.
+  // Only check-in / check-out drive the room; cancelled / no_show / tentative /
+  // confirmed intentionally leave the room untouched.
+  if (updated.roomId) {
+    if (to === "checked_in") {
+      await changeRoomStatus(pms, updated.roomId, "occupied");
+    } else if (to === "checked_out") {
+      await changeRoomStatus(pms, updated.roomId, "dirty");
+    }
+  }
+
   // Cancellation policy: void any outstanding invoices for the reservation.
   // Payments already taken then surface as a refund owed (negative net balance).
   if (to === "cancelled") {
