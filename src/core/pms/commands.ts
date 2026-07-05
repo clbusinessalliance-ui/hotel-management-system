@@ -77,6 +77,28 @@ export async function changeReservationStatus(
       await changeRoomStatus(pms, updated.roomId, "occupied");
     } else if (to === "checked_out") {
       await changeRoomStatus(pms, updated.roomId, "dirty");
+
+      // Auto-create the turnover cleaning task for the vacated room — unless an
+      // open task (pending / in_progress) already exists for it. One task per
+      // room, never duplicates. Unassigned; staff assignment is a later concern.
+      const hasOpenTask = (await pms.data.housekeeping.list()).some(
+        (t) =>
+          t.roomId === updated.roomId && (t.status === "pending" || t.status === "in_progress")
+      );
+      if (!hasOpenTask) {
+        const stamp = nowISO();
+        const task: HousekeepingTask = {
+          id: newId("hk"),
+          roomId: updated.roomId,
+          assignedTo: undefined,
+          status: "pending",
+          scheduledFor: stamp.slice(0, 10), // today
+          notes: "Automatically created after guest checkout",
+          createdAt: stamp,
+          updatedAt: stamp,
+        };
+        await pms.data.housekeeping.save(task);
+      }
     }
   }
 
